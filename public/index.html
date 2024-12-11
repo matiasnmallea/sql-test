@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo registro login y acceso protegido</title>
+</head>
+<body>
+    <h1>Requests Example</h1>
+
+    <h2>Registrar Usuario</h2>
+    <form id="registerForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>Login de usuario</h2>
+    <form id="loginForm">
+        <label for="loginEmail">Email:</label>
+        <input type="email" id="loginEmail" name="email" required><br><br>
+        <label for="loginPassword">Password:</label>
+        <input type="password" id="loginPassword" name="password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
+
+    <h2>Obtener recurso protegido</h2>
+    <button onclick="getProtectedData()">Get Protected Data</button>
+
+    <div id="protectedData"></div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            registerUser();
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            loginUser();
+        });
+
+        function registerUser() {
+            const formData = new FormData(document.getElementById('registerForm'));
+
+            fetch('https://paint-mangrove-rodent.glitch.me/api/user/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to register user');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('User registered successfully', data);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function loginUser() {
+            const formData = new FormData(document.getElementById('loginForm'));
+
+            fetch('https://paint-mangrove-rodent.glitch.me/api/user/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to login user');
+                }
+                return response.text(); // Obtener la respuesta como texto en lugar de JSON
+            })
+            .then(data => {
+                console.log('User logged in successfully', data);
+                // Guardar el token en el almacenamiento local
+                localStorage.setItem('token', data);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function getProtectedData() {
+            // Obtener el token del almacenamiento local
+            const token = localStorage.getItem('token');
+
+            fetch('https://paint-mangrove-rodent.glitch.me/api/protected', {
+                headers: {
+                    'auth-token': token 
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch protected data');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Protected data:', data);
+                // Mostrar la respuesta en el navegador
+                document.getElementById('protectedData').innerText = JSON.stringify(data, null, 2);
+
+                setTimeout(() => {
+                window.location.href = './logistica.html';  
+                }, 3000);
+                //espero 3 segundos y redireciono a logistica
+
+                
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('protectedData').innerText = 'Error fetching protected data';
+            });
+        }
+    </script>
+</body>
+</html>
